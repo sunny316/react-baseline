@@ -1,6 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
-const WebpackAssetsManifest = require('webpack-assets-manifest');
+const WebpackAssetsManifest = require('webpack-manifest-plugin');
 
 var parentDir = path.join(__dirname, './');
 
@@ -28,7 +28,20 @@ module.exports = {
         new WebpackAssetsManifest({
           // Options go here
           fileName: 'asset-manifest.json',
-          publicPath: 'dist',
+          generate: (seed, files, entrypoints) => {
+            const manifestFiles = files.reduce((manifest, file) => {
+              manifest[file.name] = file.path;
+              return manifest;
+            }, seed);
+            const entrypointFiles = entrypoints.main.filter(
+              fileName => !fileName.endsWith('.map')
+            );
+  
+            return {
+              files: manifestFiles,
+              entrypoints: entrypointFiles,
+            };
+          },
         }),
     ]
 }
